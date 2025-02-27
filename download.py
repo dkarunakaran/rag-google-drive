@@ -8,8 +8,8 @@ from google_drive import GoogleDrive
 from config_file import Config
 
 class Download:
-    def __init__(self):
-        self.config = Config()
+    def __init__(self, config):
+        self.config = config
         self.gd = GoogleDrive(config=self.config)
         
 
@@ -18,7 +18,7 @@ class Download:
         self.gd.list_all_files()
         
         # Get download location
-        local_base_path = 'downloaded_files'
+        local_base_path = self.config.downloaded_files_path
         # Make sure base directory exists
         os.makedirs(local_base_path, exist_ok=True)
         print(f"\nMapping Google Drive structure...")
@@ -27,9 +27,6 @@ class Download:
         print(f"Downloading all files to: {os.path.abspath(local_base_path)}")
         self.gd.download_files(drive_map, local_base_path)
         print("\nDownload complete!")
-
-
-
 
 
 if __name__ == '__main__':
