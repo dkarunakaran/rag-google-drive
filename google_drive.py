@@ -6,9 +6,10 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-from tqdm import tqdm
 import datetime
 import hashlib
+from pathlib import Path
+import mimetypes
 
 
 class GoogleDrive:
@@ -16,6 +17,9 @@ class GoogleDrive:
     def __init__(self, config):
         self.config = config
         self.authenticate()
+        if os.path.exists(self.config.metadata_file):
+            os.remove(self.config.metadata_file)
+        self.metadata = {}
 
     def authenticate(self):
         # If modifying these scopes, delete the file token.json.
@@ -101,7 +105,7 @@ class GoogleDrive:
                 fields='nextPageToken, files(id, name, mimeType, size, modifiedTime)',
                 pageToken=page_token
             ).execute()
-            
+
             results.extend(response.get('files', []))
             page_token = response.get('nextPageToken')
             
@@ -129,6 +133,7 @@ class GoogleDrive:
                 drive_map['files'].append({
                     'id': item['id'],
                     'name': item['name'],
+                    'google_drive_url': f"https://drive.google.com/file/d/{item['id']}/view",
                     'path': item_path,
                     'mime_type': item['mimeType'],
                     'size': item.get('size'),
@@ -197,16 +202,58 @@ class GoogleDrive:
                     # Create directory if it doesn't exist
                     os.makedirs(os.path.dirname(file_path), exist_ok=True)
                     
-                    with open(file_path, 'wb') as f:
+                    with open(file_path, 'wb') as f:                        
                         downloader = MediaIoBaseDownload(f, request)
                         done = False
                         while not done:
                             status, done = downloader.next_chunk()
                             print(f"\r{progress} Download {int(status.progress() * 100)}%", end="")
                         print()  # New line after download completes
+
+                    #--------Extract rich metadata from a file-------
+                    file_path = Path(file_path)
+                    directory_path = Path(self.config.downloaded_files_path)
+                    stat_info = file_path.stat()
+                    
+                    # Get file information
+                    #file_size = stat_info.st_size
+                    created_time = datetime.datetime.fromtimestamp(stat_info.st_ctime)
+                    modified_time = datetime.datetime.fromtimestamp(stat_info.st_mtime)
+                    
+                    # Get relative path from the base directory
+                    rel_path = file_path.relative_to(directory_path)
+                    
+                    # Generate file hash for unique identification
+                    file_hash = ""
+                    try:
+                        with open(file_path, "rb") as f:
+                            content = f.read()
+                            file_hash = hashlib.md5(content).hexdigest()
+                    except Exception as e:
+                        print(f"Could not generate hash for {file_path}: {e}")
+                    
+                    # Get mime type
+                    mime_type, _ = mimetypes.guess_type(str(file_path))
+                    
+                    # Build metadata dict                    
+                    self.metadata[file_hash] = {
+                        "source": str(file_path),
+                        "filename": file_path.name,
+                        "extension": file_path.suffix.lower(),
+                        "created_date": created_time.isoformat(),
+                        "modified_date": modified_time.isoformat(),
+                        "relative_path": str(rel_path),
+                        "parent_directory": str(rel_path.parent),
+                        "file_hash": file_hash,
+                        "mime_type": mime_type or "unknown",
+                        "processing_date": datetime.datetime.now().isoformat(),
+                        "google_drive_url": file_item['google_drive_url'],
+                        "google_drive_id": file_item['id']
+                    }
+                    
                 except Exception as e:
                     print(f"Error downloading {file_name}: {str(e)}")
-        
+
         # Clean up empty directories
         self.clean_empty_directories(local_base_path)
 
@@ -258,11 +305,60 @@ class GoogleDrive:
                         print(f"\rExport {int(status.progress() * 100)}%", end="")
                     print()  # New line after export completes
                 
+                #--------Extract rich metadata from a file-------
+                file_path = Path(file_path)
+                directory_path = Path(self.config.downloaded_files_path)
+                stat_info = file_path.stat()
+                
+                # Get file information
+                #file_size = stat_info.st_size
+                created_time = datetime.datetime.fromtimestamp(stat_info.st_ctime)
+                modified_time = datetime.datetime.fromtimestamp(stat_info.st_mtime)
+                
+                # Get relative path from the base directory
+                rel_path = file_path.relative_to(directory_path)
+                
+                # Generate file hash for unique identification
+                file_hash = ""
+                try:
+                    with open(file_path, "rb") as f:
+                        content = f.read()
+                        file_hash = hashlib.md5(content).hexdigest()
+                except Exception as e:
+                    print(f"Could not generate hash for {file_path}: {e}")
+                
+                # Get mime type
+                mime_type, _ = mimetypes.guess_type(str(file_path))
+
+                # Build metadata dict                    
+                self.metadata[file_hash] = {
+                    "source": str(file_path),
+                    "filename": file_path.name,
+                    "extension": file_path.suffix.lower(),
+                    "created_date": created_time.isoformat(),
+                    "modified_date": modified_time.isoformat(),
+                    "relative_path": str(rel_path),
+                    "parent_directory": str(rel_path.parent),
+                    "file_hash": file_hash,
+                    "mime_type": mime_type or "unknown",
+                    "processing_date": datetime.datetime.now().isoformat(),
+                    "google_drive_url": file_item['google_drive_url'],
+                    "google_drive_id": file_item['id']
+                }
+                
                 print(f"Exported: {file_path}")
             except Exception as e:
                 print(f"Error exporting {file_name}: {str(e)}")
         else:
             print(f"Unsupported Google Workspace format: {mime_type} for file: {file_name}")
+
+    def save_metadata(self):
+         # Serializing json
+        json_object = json.dumps(self.metadata, indent=4)
+        
+        # Writing to sample.json
+        with open(self.config.metadata_file, "w") as outfile:
+            outfile.write(json_object)
 
     def clean_empty_directories(self, path):
         """Recursively remove empty directories."""

@@ -6,6 +6,8 @@ google-auth-oauthlib==1.2.0
 
 python-dotenv==1.0.1
 openai==1.60.2
+docx2txt==0.8
+unstructured
 
 # Langchain, Langgraph, GenAI
 langchain==0.3.19
