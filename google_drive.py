@@ -10,6 +10,7 @@ import datetime
 import hashlib
 from pathlib import Path
 import mimetypes
+import shutil
 
 
 class GoogleDrive:
@@ -17,8 +18,6 @@ class GoogleDrive:
     def __init__(self, config):
         self.config = config
         self.authenticate()
-        if os.path.exists(self.config.metadata_file):
-            os.remove(self.config.metadata_file)
         self.metadata = {}
 
     def authenticate(self):
@@ -40,7 +39,7 @@ class GoogleDrive:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     "credentials.json", SCOPES
                 )
-                creds = flow.run_local_server(port=0, open_browser=False)
+                creds = flow.run_local_server(port=39855, open_browser=True)
             # Save the credentials for the next run
             with open("token.json", "w") as token:
                 token.write(creds.to_json())
@@ -116,7 +115,7 @@ class GoogleDrive:
         for item in results:
             item_path = os.path.join(path, item['name'])
             
-            if item['mimeType'] == 'application/vnd.google-apps.folder':
+            if item['mimeType'] == 'application/vnd.google-apps.folder' and item['name'] not in self.config.folders_ignore:
                 # Add folder to the map
                 drive_map['folders'].append({
                     'id': item['id'],
@@ -371,3 +370,12 @@ class GoogleDrive:
                         print(f"Removed empty directory: {dir_path}")
                 except Exception as e:
                     print(f"Error removing directory {dir_path}: {str(e)}")
+
+    def remove_files(self):
+        try:
+            shutil.rmtree(self.config.downloaded_files_path)
+            print(f"Directory '{self.config.downloaded_files_path}' and its contents removed.")
+        except FileNotFoundError:
+            print(f"Directory '{self.config.downloaded_files_path}' not found.")
+        except OSError as e:
+            print(f"Error removing directory '{self.config.downloaded_files_path}': {e}")

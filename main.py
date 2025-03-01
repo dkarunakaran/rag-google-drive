@@ -8,13 +8,24 @@ def main():
 
     load_dotenv()  
     config = Config()
-    # Download file from google drive
-    #dwnld = Download(config=config)
-    #dwnld.google_drive()
-
-    # Add documets to chroma
+    dwnld = Download(config=config)
     chroma = Chroma(config=config)
-    #chroma.process_and_store()
+    gradio = GradioInterface(config=config, chroma=chroma)
+    
+    # Ask for confirmation
+    confirm = input("\nDo you want to download all files and folders? (yes/no): ")
+    if confirm.lower() in ['yes', 'y']:
+        print("Download is started...")
+        # Download file from google drive
+        dwnld.google_drive()
+
+    # Ask for confirmation
+    confirm = input("\nDo you want to add all files to chroma? (yes/no): ")
+    if confirm.lower() in ['yes', 'y']:
+        print("chroma process is started...")
+        #chroma.remove_chroma_db()
+        # Add documets to chroma
+        chroma.process_and_store()
 
     # Visualize the vector store
     collection = chroma.db._collection
@@ -22,7 +33,6 @@ def main():
     print(f"No. of documents in Chromadb collection: {count}")
 
     # Build & run gradio interface
-    gradio = GradioInterface(config=config, chroma=chroma)
     gradio.run()
 
 

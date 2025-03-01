@@ -13,6 +13,8 @@ class Download:
         self.gd = GoogleDrive(config=self.config)
         
     def google_drive(self):
+        print("Delete previously downloaded files")
+        self.gd.remove_files()
         print("\nStructure of your Google Drive:")
         self.gd.list_all_files()
         # Get download location

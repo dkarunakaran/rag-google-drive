@@ -11,7 +11,7 @@ import hashlib
 import mimetypes
 import re
 import json
-
+import shutil
 
 class Chroma:
     def __init__(self, config):
@@ -24,7 +24,22 @@ class Chroma:
             embedding_function=self.embeddings,
             persist_directory=self.config.db_persist_directory
         )
-
+    '''
+    def remove_chroma_db(self):
+        try:
+            shutil.rmtree(self.config.db_persist_directory)
+            print(f"Directory '{self.config.db_persist_directory}' and its contents removed.")
+            self.db = ChromaStore(
+                collection_name=self.config.collection_name,
+                embedding_function=self.embeddings,
+                persist_directory=self.config.db_persist_directory
+            )
+        except FileNotFoundError:
+            print(f"Directory '{self.config.db_persist_directory}' not found.")
+        except OSError as e:
+            print(f"Error removing directory '{self.config.db_persist_directory}': {e}")
+    '''
+    
     def get_documents(self):
         """
         Recursively load all PDF and DOCX documents from the directory
