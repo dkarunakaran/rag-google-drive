@@ -11,14 +11,16 @@ import hashlib
 import mimetypes
 import re
 import json
-import shutil
+import tiktoken
+
 
 class Chroma:
     def __init__(self, config):
         self.config = config
         self.pdf_count = 0
         self.docx_count = 0
-        self.embeddings = OpenAIEmbeddings()    
+        enc = tiktoken.get_encoding("cl100k_base") # get the encoding that openAI uses.
+        self.embeddings = OpenAIEmbeddings(disallowed_special=(enc.special_tokens_set - {'<|endoftext|>'}))    
         self.db = ChromaStore(
             collection_name=self.config.collection_name,
             embedding_function=self.embeddings,
@@ -39,7 +41,7 @@ class Chroma:
         except OSError as e:
             print(f"Error removing directory '{self.config.db_persist_directory}': {e}")
     '''
-    
+
     def get_documents(self):
         """
         Recursively load all PDF and DOCX documents from the directory
@@ -105,7 +107,7 @@ class Chroma:
             
             # Create a new document with enhanced metadata
             enhanced_doc = Document(
-                page_content=content,
+                page_content=str(content),
                 metadata=enhanced_metadata
             )
             

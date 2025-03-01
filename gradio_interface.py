@@ -14,9 +14,6 @@ class GradioInterface:
         # create a new Chat with OpenAI
         llm = ChatOpenAI(temperature=0.7, model_name=self.config.model)
 
-        # Alternative - if you'd like to use Ollama locally, uncomment this line instead
-        # llm = ChatOpenAI(temperature=0.7, model_name='llama3.2', base_url='http://localhost:11434/v1', api_key='ollama')
-
         # set up the conversation memory for the chat
         memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 

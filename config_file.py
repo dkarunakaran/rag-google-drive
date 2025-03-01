@@ -10,4 +10,4 @@ class Config:
     # text_loader_kwargs={'autodetect_encoding': True}
     collection_name = 'google_drive_collection'
     model = "gpt-4o-mini"
-    folders_ignore = ['Research papers', 'Other paper reviews', 'Thesis', 'Videos', 'IAG', 'Photos', 'photos', 'videos', 'PhD']
+    folders_ignore = ['Research papers', 'Other paper reviews', 'Thesis', 'Videos', 'IAG', 'Photos', 'photos', 'videos', 'PhD', 'Documents', 'Projects and study', 'Gift cards']
