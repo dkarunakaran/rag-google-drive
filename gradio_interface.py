@@ -18,7 +18,7 @@ class GradioInterface:
         memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 
         # the retriever is an abstraction over the VectorStore that will be used during RAG
-        retriever = self.chroma.db.as_retriever()
+        retriever = self.chroma.db.as_retriever(search_kwargs={"k": 5})
 
         # putting it together: set up the conversation chain with the GPT 3.5 LLM, the vector store and memory
         self.conversation_chain = ConversationalRetrievalChain.from_llm(llm=llm, retriever=retriever, memory=memory)

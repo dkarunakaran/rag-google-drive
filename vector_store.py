@@ -5,10 +5,9 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 from langchain_community.vectorstores import Chroma as ChromaStore
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.schema import Document
-import datetime
+from langchain.text_splitter import CharacterTextSplitter
 from typing import Dict, Any
 import hashlib
-import mimetypes
 import re
 import json
 import tiktoken
@@ -141,9 +140,13 @@ class Chroma:
         if not documents:
             print("No documents were loaded")
             return None
-        # Create vector store
+        
+        text_splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=300)
+        chunks = text_splitter.split_documents(documents)
+        print(f"Total number of chunks: {len(chunks)}")
+        # Adding documents to vector store
         print(f"Adding document to Chroma vector store")
-        self.db.add_documents(documents=documents)
+        self.db.add_documents(documents=chunks)
 
 
 
