@@ -19,6 +19,11 @@ class Chroma:
         self.pdf_count = 0
         self.docx_count = 0
         self.embeddings = OpenAIEmbeddings()    
+        self.db = ChromaStore(
+            collection_name=self.config.collection_name,
+            embedding_function=self.embeddings,
+            persist_directory=self.config.db_persist_directory
+        )
 
     def get_documents(self):
         """
@@ -120,12 +125,8 @@ class Chroma:
             print("No documents were loaded")
             return None
         # Create vector store
-        print(f"Creating Chroma vector store in {self.config.db_persist_directory}")
-        self.db = ChromaStore.from_documents(
-            documents=documents,
-            embedding=self.embeddings,
-            persist_directory=self.config.db_persist_directory
-        )
+        print(f"Adding document to Chroma vector store")
+        self.db.add_documents(documents=documents)
 
 
 

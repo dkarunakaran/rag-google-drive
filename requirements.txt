@@ -8,6 +8,7 @@ python-dotenv==1.0.1
 openai==1.60.2
 docx2txt==0.8
 unstructured
+gradio==5.20.0
 
 # Langchain, Langgraph, GenAI
 langchain==0.3.19

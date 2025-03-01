@@ -8,5 +8,7 @@ class Config:
     text_loader_kwargs = {'encoding': 'utf-8'}
     # If that doesn't work, some Windows users might need to uncomment the next line instead
     # text_loader_kwargs={'autodetect_encoding': True}
+    collection_name = 'google_drive_collection'
+    model = "gpt-4o-mini"
 
 
