@@ -1,4 +1,11 @@
-# rag-google-drive
+# RAG for personal Google Drive data
+<div align="center">
+  <!-- Backend -->
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/LangChain-121212?style=for-the-badge&logo=chainlink&logoColor=white" />
+
+</div>
 
 This repository demonstrates Retrieval Augmented Generation (RAG) using data retrieved from Google Drive.
 
